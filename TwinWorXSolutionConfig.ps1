@@ -15,13 +15,43 @@ param(
       [string]$postgrePort,
       [string]$vmIP,
       #-----------------------
-      [string]$busConString
+      [string]$busConString,
+      [string]$subscriptionId,
+      [string]$resourceGroupName,
+      [string]$pgServerName
       #[string]$iotHubConString
      
   )
 
 
 #-------------End-------------------------
+#########restart pg server
+
+$response = Invoke-WebRequest -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fmanagement.azure.com%2F' -Method GET -UseBasicParsing -Headers @{Metadata="true"}
+
+$content = $response.Content | ConvertFrom-Json
+
+$token = $content.access_token
+$btoken="Bearer $token"
+
+#Write-host  $btoken
+
+#$subscriptions='4ddcea5c-502f-4395-b3dc-5b2e28da9cc4'
+#$resourceGroup='emagic'
+#$pgServer='pgdemo'
+#$token='Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IkN0VHVoTUptRDVNN0RMZHpEMnYyeDNRS1NSWSIsImtpZCI6IkN0VHVoTUptRDVNN0RMZHpEMnYyeDNRS1NSWSJ9.eyJhdWQiOiJodHRwczovL21hbmFnZW1lbnQuYXp1cmUuY29tLyIsImlzcyI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0LzMyNzE3ZWZlLThmY2ItNDQ4Ni05MDExLTI3N2MyNjVjMGFjMi8iLCJpYXQiOjE1ODk5NzQwNTUsIm5iZiI6MTU4OTk3NDA1NSwiZXhwIjoxNTkwMDYwNzU1LCJhaW8iOiI0MmRnWUZoeFRTbDhQV2ZoazhoLzU1TlRGbmd2QXdBPSIsImFwcGlkIjoiMzdhYTgwYWItYTNmYS00OGQyLWI5ZmItNmU5N2Q0ZjZkYzg1IiwiYXBwaWRhY3IiOiIyIiwiaWRwIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvMzI3MTdlZmUtOGZjYi00NDg2LTkwMTEtMjc3YzI2NWMwYWMyLyIsIm9pZCI6IjZmYmFmZTYwLTJiNmMtNDg3ZS04YThiLWE3NGFlZTcyNjA3NCIsInN1YiI6IjZmYmFmZTYwLTJiNmMtNDg3ZS04YThiLWE3NGFlZTcyNjA3NCIsInRpZCI6IjMyNzE3ZWZlLThmY2ItNDQ4Ni05MDExLTI3N2MyNjVjMGFjMiIsInV0aSI6Ik1nZ2ZuZ0NXV1V1X1NuMnluMHhBQUEiLCJ2ZXIiOiIxLjAiLCJ4bXNfbWlyaWQiOiIvc3Vic2NyaXB0aW9ucy80ZGRjZWE1Yy01MDJmLTQzOTUtYjNkYy01YjJlMjhkYTljYzQvcmVzb3VyY2Vncm91cHMvZW1hZ2ljL3Byb3ZpZGVycy9NaWNyb3NvZnQuQ29tcHV0ZS92aXJ0dWFsTWFjaGluZXMvaXp0aWR0d1dpblZNIn0.PHXH44XmX2vIZNEqrtnSCPYoz022BQjQMzO4XcZxtUFTJ4g4ZXNrwsOaEJR_l4NmThvsTprQfreeT-w2qwJMX2jlUbRQjEUGv0Na2BCiBIjNSSUhnSTtHu4E1S06ayHjF3xvxrQWuZqtaVKVWnwwH9FzGwtM6PNVI6KWrCXGYn7U_RX7_FYcB7TcfJPmRZlr1TcqoXQXfTdh8SmD9s_DpmvypUxf6b5bcxRD2x_3wGk9DY3uaDLRWCMs1sIpIMQr2-ZaViNljqVhZiQKF36rIDyKU6tGxgHZsD-7gHQyNxDRmFERZyhFH0AwFzyYMINvyX2d12l9C320wqgQx6ANRA'
+$Header = @{
+    'Content-type' = 'application/json'
+     Authorization =$btoken
+}
+$uri='https://management.azure.com/subscriptions/'+$subscriptionId+'/resourceGroups/'+$resourceGroupName+'/providers/Microsoft.DBforPostgreSQL/servers/'+$pgServerName+'/restart?api-version=2017-12-01'
+
+
+Invoke-WebRequest $uri  -Headers $Header -Method 'POST'
+
+Start-Sleep -s 120
+
+#################
 
 #-------------------Variable Declare and Initilize----------------------------
 $busType='servicebus'
